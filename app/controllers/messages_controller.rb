@@ -3,10 +3,12 @@
 # Main controller for message management in the medical communication system.
 # Handles the web interface for viewing and sending messages between users.
 class MessagesController < ApplicationController
+  before_action :initialize_loader_service
+
   def inbox
     # High-performance paginated inbox with optimized queries
     @pagy, @messages = pagy(
-      Messages::Queries::LoaderService.inbox_messages_for_user(current_user),
+      @loader_service.inbox_messages_for_user,
       items: 10 # Optimized page size for performance
     )
 
@@ -17,7 +19,7 @@ class MessagesController < ApplicationController
   def outbox
     # High-performance paginated outbox with optimized queries
     @pagy, @messages = pagy(
-      Messages::Queries::LoaderService.outbox_messages_for_user(current_user),
+      @loader_service.outbox_messages_for_user,
       items: 10 # Optimized page size for performance
     )
     render :outbox
@@ -68,6 +70,10 @@ class MessagesController < ApplicationController
   end
 
   private
+
+  def initialize_loader_service
+    @loader_service = Messages::Queries::LoaderService.new(current_user)
+  end
 
   def request_message_params
     params.require(:message).permit(:body, :routing_type, :parent_message_id, :status)

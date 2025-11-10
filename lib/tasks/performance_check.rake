@@ -10,6 +10,7 @@ namespace :performance_check do
 
     setup_real_sidekiq
     results = Performance::SequentialExecutionService.run(users: users, messages: messages)
+    cleanup_sidekiq_jobs
     exit(results[:success] ? 0 : 1)
   end
 
@@ -19,6 +20,7 @@ namespace :performance_check do
 
     setup_real_sidekiq
     results = Performance::ConcurrentExecutionService.run(users: users, messages: messages)
+    cleanup_sidekiq_jobs
     exit(results[:success] ? 0 : 1)
   end
 
@@ -49,10 +51,27 @@ namespace :performance_check do
     puts "✅ Removed #{count} test users and their messages"
   end
 
+  # Clear all Sidekiq jobs (useful after performance tests)
+  task :clear_jobs => :environment do
+    puts "🧹 Clearing all Sidekiq jobs..."
+
+    # Clear fake jobs if in test mode
+    if defined?(Sidekiq::Testing) && Sidekiq::Testing.fake?
+      job_count = Sidekiq::Worker.jobs.size
+      Sidekiq::Worker.clear_all
+      puts "✅ Cleared #{job_count} fake jobs"
+    end
+
+    # Clear real Redis queues
+    Sidekiq.redis { |r| r.flushdb }
+    puts "✅ Cleared all Redis queues and jobs"
+  end
+
   def setup_real_sidekiq
-    # Force real background processing
+    # Use fake mode for performance testing to avoid job accumulation
     if defined?(Sidekiq::Testing)
-      Sidekiq::Testing.disable!
+      Sidekiq::Testing.fake!
+      puts "🎯 Using Sidekiq fake mode - jobs will be tracked but not processed"
     end
 
     # Suppress Sidekiq logs during performance testing
@@ -69,6 +88,14 @@ namespace :performance_check do
   rescue => e
     puts "📡 Redis error: #{e.message}"
     exit(1)
+  end
+
+  # Clear any accumulated fake jobs after performance testing
+  def cleanup_sidekiq_jobs
+    if defined?(Sidekiq::Testing) && Sidekiq::Testing.fake?
+      Sidekiq::Worker.clear_all
+      puts "🧹 Cleared #{Sidekiq::Worker.jobs.size} accumulated test jobs"
+    end
   end
 end
 
@@ -90,6 +117,8 @@ task :perform, %i[users messages] => 'performance_check:sequential'
 #
 # == CLEANUP ==
 # rake performance_check:cleanup_test_users   # Remove all test users
+# rake performance_check:clear_jobs           # Clear all Sidekiq jobs and queues
 #
 # 💡 TIP: Always run setup_users first before running performance tests
 # 🚀 All tests now measure PURE messaging performance (no user creation overhead)
+# 🧹 Use clear_jobs if you see background job accumulation

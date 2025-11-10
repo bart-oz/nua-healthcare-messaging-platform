@@ -28,6 +28,10 @@ When('I open the message') do
   first('.list-group-item').click
 end
 
+When('I click to view the message detail') do
+  first('.list-group-item').click
+end
+
 Then('I should see the message in my inbox') do
   expect(page).to have_css('#inbox-list .list-group-item')
   expect(page).to have_content(@received_message.body) if @received_message
