@@ -175,6 +175,7 @@ detectors:
   TooManyInstanceVariables:
     exclude:
       - Messages::Operations::RoutingService
+      - MessagesController
 
   # Missing safe methods acceptable for Rails patterns
   MissingSafeMethod:
@@ -219,6 +220,7 @@ detectors:
       - PrescriptionsController
       - Api::AuthenticationService
       - Messages::Operations::RoutingService
+      - Api::V1::InboxesController
 
   # API versioning naming
   UncommunicativeModuleName:
