@@ -204,4 +204,113 @@ RSpec.describe Message, type: :model do
       end
     end
   end
+
+  describe 'scopes for eager loading' do
+    let(:patient) { create(:user, :patient) }
+    let(:doctor) { create(:user, :doctor) }
+
+    describe '.with_basic_data' do
+      let!(:message) { create(:message, inbox: patient.inbox, outbox: doctor.outbox) }
+
+      it 'loads messages with minimal associations' do
+        result = described_class.with_basic_data.first
+
+        expect { result.outbox.user }.not_to raise_error
+        expect { result.parent_message }.not_to raise_error
+      end
+
+      it 'does not load replies association' do
+        create_list(:message, 2, parent_message: message)
+        result = described_class.with_basic_data.first
+
+        expect(result.association(:replies).loaded?).to be false
+      end
+
+      it 'loads nested user associations' do
+        result = described_class.with_basic_data.first
+
+        # Verify outbox.user is loaded
+        expect { result.outbox.user }.not_to raise_error
+        # Verify inbox.user is loaded
+        expect { result.inbox.user }.not_to raise_error
+      end
+    end
+
+    describe '.with_full_conversation' do
+      let!(:message) { create(:message, inbox: patient.inbox, outbox: doctor.outbox) }
+      let!(:replies) { create_list(:message, 3, parent_message: message) }
+
+      it 'loads message with all conversation data' do
+        result = described_class.with_full_conversation.first
+
+        expect { result.replies }.not_to raise_error
+        expect { result.parent_message }.not_to raise_error
+      end
+
+      it 'loads replies association' do
+        result = described_class.with_full_conversation.first
+
+        expect(result.association(:replies).loaded?).to be true
+        expect(result.replies.count).to eq(3)
+      end
+
+      it 'loads nested associations for replies' do
+        result = described_class.with_full_conversation.first
+
+        # Verify replies are loaded with their associations
+        result.replies.each do |reply|
+          expect { reply.inbox.user }.not_to raise_error
+          expect { reply.outbox.user }.not_to raise_error
+        end
+      end
+    end
+
+    describe '.with_prescriptions' do
+      let!(:prescription) { create(:prescription, user: patient) }
+      let!(:message) { create(:message, inbox: patient.inbox, prescription: prescription) }
+
+      it 'loads messages with prescription data' do
+        result = described_class.with_prescriptions.first
+
+        expect { result.prescription }.not_to raise_error
+        expect { result.prescription.payment }.not_to raise_error
+      end
+
+      it 'loads prescription and payment associations' do
+        result = described_class.with_prescriptions.first
+
+        expect(result.association(:prescription).loaded?).to be true
+        expect(result.prescription).to eq(prescription)
+      end
+
+      it 'returns messages without prescriptions' do
+        message_without_prescription = create(:message, inbox: patient.inbox, prescription: nil)
+
+        results = described_class.with_prescriptions
+        expect(results).to include(message, message_without_prescription)
+      end
+    end
+
+    describe '.with_full_context' do
+      let!(:prescription) { create(:prescription, user: patient) }
+      let!(:message) { create(:message, inbox: patient.inbox, outbox: doctor.outbox, prescription: prescription) }
+      let!(:replies) { create_list(:message, 2, parent_message: message) }
+
+      it 'loads complete conversation with prescriptions' do
+        result = described_class.with_full_context.first
+
+        expect { result.replies }.not_to raise_error
+        expect { result.prescription.payment }.not_to raise_error
+        expect { result.outbox.user }.not_to raise_error
+      end
+
+      it 'combines with_full_conversation and with_prescriptions' do
+        result = described_class.with_full_context.first
+
+        expect(result.association(:replies).loaded?).to be true
+        expect(result.association(:prescription).loaded?).to be true
+        expect(result.replies.count).to eq(2)
+      end
+    end
+  end
 end

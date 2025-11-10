@@ -11,50 +11,34 @@ module Messages
 
       # For paginated lists - minimal includes (no replies)
       def inbox_messages_for_user
-        @user.inbox.messages
-             .includes(:outbox, :parent_message,
-                       outbox: :user, inbox: :user)
-             .order(created_at: :desc)
+        @user.inbox.messages.with_basic_data.order(created_at: :desc)
       end
 
       # For paginated lists with conversation data
       def inbox_messages_for_user_with_replies
-        inbox_messages_for_user
-          .includes(replies: %i[inbox outbox])
+        @user.inbox.messages.with_full_conversation.order(created_at: :desc)
       end
 
       # For outbox - minimal includes (no replies)
       def outbox_messages_for_user
-        @user.outbox.messages
-             .includes(:inbox, :parent_message,
-                       inbox: :user, outbox: :user)
-             .order(created_at: :desc)
+        @user.outbox.messages.with_basic_data.order(created_at: :desc)
       end
 
       # For outbox with conversation data
       def outbox_messages_for_user_with_replies
-        outbox_messages_for_user
-          .includes(replies: %i[inbox outbox])
+        @user.outbox.messages.with_full_conversation.order(created_at: :desc)
       end
 
       # For detail view - full conversation data (class method - no instance state needed)
       def self.find_message_safely(message_id)
-        Message.includes(:inbox, :outbox, :parent_message, :prescription,
-                         inbox: :user, outbox: :user,
-                         parent_message: %i[inbox outbox],
-                         replies: %i[inbox outbox],
-                         prescription: :payment)
-               .find_by(id: message_id)
+        Message.with_full_context.find_by(id: message_id)
       rescue ActiveRecord::RecordNotFound
         nil
       end
 
       # For fetching with prescriptions (class method - no instance state needed)
       def self.messages_with_prescriptions(message_ids)
-        Message.where(id: message_ids)
-               .includes(:outbox, :prescription,
-                         outbox: :user,
-                         prescription: :payment)
+        Message.where(id: message_ids).with_prescriptions
       end
     end
   end

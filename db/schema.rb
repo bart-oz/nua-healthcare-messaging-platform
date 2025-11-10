@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_05_082907) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_10_131433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -39,23 +39,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_05_082907) do
     t.index ["inbox_id", "created_at"], name: "idx_messages_inbox_created_at", order: { created_at: :desc }
     t.index ["inbox_id", "prescription_id", "created_at"], name: "idx_messages_inbox_prescription_created"
     t.index ["inbox_id", "read", "created_at"], name: "idx_messages_inbox_unread_created", order: { created_at: :desc }
-    t.index ["inbox_id", "read"], name: "idx_messages_inbox_read_status", where: "(read = false)"
     t.index ["inbox_id", "read_at"], name: "idx_messages_inbox_unread", where: "(read_at IS NULL)"
-    t.index ["inbox_id"], name: "index_messages_on_inbox_id"
     t.index ["outbox_id", "created_at"], name: "idx_messages_outbox_created_at", order: { created_at: :desc }
-    t.index ["outbox_id"], name: "index_messages_on_outbox_id"
     t.index ["parent_message_id", "created_at"], name: "idx_messages_parent_thread", order: { created_at: :desc }
     t.index ["parent_message_id", "created_at"], name: "idx_messages_root_conversations", order: { created_at: :desc }, where: "(parent_message_id IS NULL)"
-    t.index ["parent_message_id"], name: "index_messages_on_parent_message_id"
     t.index ["prescription_id", "created_at"], name: "index_messages_on_prescription_id_and_created_at"
     t.index ["prescription_id"], name: "index_messages_on_prescription_id"
-    t.index ["read_at"], name: "idx_messages_read_at"
     t.index ["routing_type", "created_at"], name: "index_messages_on_routing_type_and_created_at"
-    t.index ["routing_type"], name: "idx_messages_routing_type"
     t.index ["routing_type"], name: "index_messages_on_routing_type"
     t.index ["status", "created_at"], name: "index_messages_on_status_and_created_at"
     t.index ["status", "read"], name: "idx_messages_status_read"
-    t.index ["status"], name: "index_messages_on_status"
   end
 
   create_table "outboxes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

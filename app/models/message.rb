@@ -47,6 +47,29 @@ class Message < ApplicationRecord
   scope :unread, -> { where(read: false) }
   scope :recent, -> { where('created_at > ?', 1.week.ago) }
 
+  # Scope for paginated list views - minimal data (no replies)
+  scope :with_basic_data, lambda {
+    includes(:outbox, :parent_message, outbox: :user, inbox: :user)
+  }
+
+  # Scope for detail views - full conversation data
+  scope :with_full_conversation, lambda {
+    includes(:outbox, :parent_message, :replies,
+             outbox: :user, inbox: :user,
+             parent_message: %i[inbox outbox],
+             replies: %i[inbox outbox])
+  }
+
+  # Scope for prescription context
+  scope :with_prescriptions, lambda {
+    includes(:prescription, prescription: :payment)
+  }
+
+  # Combined: full conversation with prescriptions
+  scope :with_full_context, lambda {
+    with_full_conversation.with_prescriptions
+  }
+
   # == Class Methods ==
 
   class << self
@@ -239,23 +262,16 @@ end
 #
 #  idx_messages_inbox_created_at                     (inbox_id,created_at DESC)
 #  idx_messages_inbox_prescription_created           (inbox_id,prescription_id,created_at)
-#  idx_messages_inbox_read_status                    (inbox_id,read) WHERE (read = false)
 #  idx_messages_inbox_unread                         (inbox_id,read_at) WHERE (read_at IS NULL)
 #  idx_messages_inbox_unread_created                 (inbox_id,read,created_at DESC)
 #  idx_messages_outbox_created_at                    (outbox_id,created_at DESC)
 #  idx_messages_parent_thread                        (parent_message_id,created_at DESC)
-#  idx_messages_read_at                              (read_at)
 #  idx_messages_root_conversations                   (parent_message_id,created_at DESC) WHERE (parent_message_id IS NULL)
-#  idx_messages_routing_type                         (routing_type)
 #  idx_messages_status_read                          (status,read)
-#  index_messages_on_inbox_id                        (inbox_id)
-#  index_messages_on_outbox_id                       (outbox_id)
-#  index_messages_on_parent_message_id               (parent_message_id)
 #  index_messages_on_prescription_id                 (prescription_id)
 #  index_messages_on_prescription_id_and_created_at  (prescription_id,created_at)
 #  index_messages_on_routing_type                    (routing_type)
 #  index_messages_on_routing_type_and_created_at     (routing_type,created_at)
-#  index_messages_on_status                          (status)
 #  index_messages_on_status_and_created_at           (status,created_at)
 #
 # Foreign Keys
