@@ -26,8 +26,8 @@ RSpec.describe Caching::ConversationCacheService do
       expect(result.first).to include(:id, :conversation_id, :last_message) if result.any?
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:fetch).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:fetch).and_raise(StandardError, 'cache unavailable')
 
       result = described_class.get_conversation_list(user.id)
 
@@ -45,8 +45,8 @@ RSpec.describe Caching::ConversationCacheService do
       expect(result.first).to include(:preview, :has_unread) if result.any?
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:fetch).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:fetch).and_raise(StandardError, 'cache unavailable')
 
       result = described_class.get_recent_conversations(user.id)
 
@@ -63,8 +63,8 @@ RSpec.describe Caching::ConversationCacheService do
       expect(result).to be_truthy
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:write).and_raise(StandardError, 'cache unavailable')
       conversations = [{ id: 1, conversation_id: 'test' }]
 
       result = described_class.cache_conversation_list(user.id, conversations)
@@ -82,8 +82,8 @@ RSpec.describe Caching::ConversationCacheService do
       expect(result).to be_truthy
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:write).and_raise(StandardError, 'cache unavailable')
       conversations = [{ id: 1, conversation_id: 'test' }]
 
       result = described_class.cache_recent_conversations(user.id, conversations)
@@ -99,8 +99,8 @@ RSpec.describe Caching::ConversationCacheService do
       expect(result).to be_truthy
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:delete_matched).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:delete_matched).and_raise(StandardError, 'cache unavailable')
 
       result = described_class.invalidate_user_conversations(user.id)
 
@@ -112,11 +112,11 @@ RSpec.describe Caching::ConversationCacheService do
     it 'invalidates all conversation caches' do
       result = described_class.invalidate_all_conversations
 
-      expect(result).to be_nil
+      expect(result).to be_truthy
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:delete_matched).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:delete_matched).and_raise(StandardError, 'cache unavailable')
 
       result = described_class.invalidate_all_conversations
 

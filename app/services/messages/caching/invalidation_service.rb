@@ -23,7 +23,7 @@ module Messages
 
         # Invalidate message list caches for this conversation
         ::Caching::MessageListCacheService.invalidate_conversation_cache(message.inbox_id, message.outbox_id)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
+      rescue StandardError => e
         Rails.logger.error "Message cache invalidation failed: #{e.message}"
       end
 

@@ -16,8 +16,8 @@ module Caching
         Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
           fetch_conversation_list_from_db(user_id, limit, offset)
         end
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error in conversation list: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error in conversation list: #{e.message}"
         fetch_conversation_list_from_db(user_id, limit, offset)
       end
 
@@ -25,8 +25,8 @@ module Caching
       def cache_conversation_list(user_id, conversations, limit: 20, offset: 0)
         cache_key = "#{CACHE_KEY_PREFIX}:list:#{user_id}:#{limit}:#{offset}"
         Rails.cache.write(cache_key, conversations, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error caching conversation list: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error caching conversation list: #{e.message}"
         false
       end
 
@@ -37,8 +37,8 @@ module Caching
         Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
           fetch_recent_conversations_from_db(user_id, limit)
         end
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error in recent conversations: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error in recent conversations: #{e.message}"
         fetch_recent_conversations_from_db(user_id, limit)
       end
 
@@ -46,27 +46,26 @@ module Caching
       def cache_recent_conversations(user_id, conversations, limit: 10)
         cache_key = "#{CACHE_KEY_PREFIX}:recent:#{user_id}:#{limit}"
         Rails.cache.write(cache_key, conversations, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error caching recent conversations: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error caching recent conversations: #{e.message}"
         false
       end
 
       # Invalidate conversation cache for a user
       def invalidate_user_conversations(user_id)
         pattern = "#{CACHE_KEY_PREFIX}:*:#{user_id}:*"
-        Rails.cache.delete_matched(pattern)
-        true
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error invalidating conversations: #{e.message}"
+        delete_matched(pattern)
+      rescue StandardError => e
+        Rails.logger.error "Cache error invalidating conversations: #{e.message}"
         false
       end
 
       # Invalidate all conversation caches
       def invalidate_all_conversations
         pattern = "#{CACHE_KEY_PREFIX}:*"
-        Rails.cache.delete_matched(pattern)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error invalidating all conversations: #{e.message}"
+        delete_matched(pattern)
+      rescue StandardError => e
+        Rails.logger.error "Cache error invalidating all conversations: #{e.message}"
         false
       end
 
@@ -96,6 +95,14 @@ module Caching
 
         conversations_query.map { |msg| conversation_data(msg) }
                            .uniq { |conv| conv[:conversation_id] }
+      end
+
+      def delete_matched(pattern)
+        Rails.cache.delete_matched(pattern)
+        true
+      rescue NoMethodError, NotImplementedError => e
+        Rails.logger.warn "Cache store does not support delete_matched: #{e.message}"
+        false
       end
 
       def fetch_recent_conversations_from_db(user_id, limit)

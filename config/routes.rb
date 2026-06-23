@@ -1,13 +1,8 @@
 Rails.application.routes.draw do
+  mount SolidObserver::Engine, at: "/solid_observer"
   # API Documentation with RSwag
   mount Rswag::Ui::Engine => '/api-docs'
   mount Rswag::Api::Engine => '/api-docs'
-
-  # Sidekiq Web UI (development and test environments only)
-  unless Rails.env.production?
-    require 'sidekiq/web'
-    mount Sidekiq::Web => '/sidekiq'
-  end
 
     # API Routes - Streamlined Design (80/20 Rule)
   namespace :api do

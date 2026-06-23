@@ -35,10 +35,10 @@ class PrescriptionPaymentJob < ApplicationJob
     logger.info "Successfully processed payment #{payment_id}"
   rescue Payments::FlakyPaymentProvider::PaymentError => e
     logger.warn "Payment failed for #{payment_id}: #{e.message} (attempt #{executions}/3)"
-    raise # Re-raise for Sidekiq auto-retry
+    raise # Re-raise for Active Job retry
   rescue StandardError => e
     logger.error "Unexpected error processing payment #{payment_id}: #{e.message}"
-    raise # Re-raise for Sidekiq auto-retry
+    raise # Re-raise for Active Job retry
   end
 
   private

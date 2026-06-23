@@ -1,0 +1,40 @@
+default: &default
+  dispatchers:
+    - polling_interval: 1
+      batch_size: 500
+
+development:
+  <<: *default
+  workers:
+    - queues:
+        - nua_messaging_development_high_priority
+        - nua_messaging_development_default
+        - nua_messaging_development_low_priority
+        - nua_messaging_development_mailers
+      threads: 3
+      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+      polling_interval: 0.1
+
+test:
+  <<: *default
+  workers:
+    - queues:
+        - high_priority
+        - default
+        - low_priority
+        - mailers
+      threads: 3
+      processes: 1
+      polling_interval: 0.1
+
+production:
+  <<: *default
+  workers:
+    - queues:
+        - nua_messaging_production_high_priority
+        - nua_messaging_production_default
+        - nua_messaging_production_low_priority
+        - nua_messaging_production_mailers
+      threads: 3
+      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+      polling_interval: 0.1

@@ -8,9 +8,9 @@ namespace :performance_check do
     users = (args[:users] || 100).to_i
     messages = (args[:messages] || 10).to_i
 
-    setup_real_sidekiq
+    verify_solid_stack
     results = Performance::SequentialExecutionService.run(users: users, messages: messages)
-    cleanup_sidekiq_jobs
+    cleanup_solid_queue_jobs
     exit(results[:success] ? 0 : 1)
   end
 
@@ -18,9 +18,9 @@ namespace :performance_check do
     users = (args[:users] || 100).to_i
     messages = (args[:messages] || 10).to_i
 
-    setup_real_sidekiq
+    verify_solid_stack
     results = Performance::ConcurrentExecutionService.run(users: users, messages: messages)
-    cleanup_sidekiq_jobs
+    cleanup_solid_queue_jobs
     exit(results[:success] ? 0 : 1)
   end
 
@@ -51,51 +51,33 @@ namespace :performance_check do
     puts "✅ Removed #{count} test users and their messages"
   end
 
-  # Clear all Sidekiq jobs (useful after performance tests)
+  # Clear all Solid Queue jobs (useful after performance tests)
   task :clear_jobs => :environment do
-    puts "🧹 Clearing all Sidekiq jobs..."
+    puts "🧹 Clearing all Solid Queue jobs..."
 
-    # Clear fake jobs if in test mode
-    if defined?(Sidekiq::Testing) && Sidekiq::Testing.fake?
-      job_count = Sidekiq::Worker.jobs.size
-      Sidekiq::Worker.clear_all
-      puts "✅ Cleared #{job_count} fake jobs"
-    end
-
-    # Clear real Redis queues
-    Sidekiq.redis { |r| r.flushdb }
-    puts "✅ Cleared all Redis queues and jobs"
+    cleanup_solid_queue_jobs
   end
 
-  def setup_real_sidekiq
-    # Use fake mode for performance testing to avoid job accumulation
-    if defined?(Sidekiq::Testing)
-      Sidekiq::Testing.fake!
-      puts "🎯 Using Sidekiq fake mode - jobs will be tracked but not processed"
-    end
-
-    # Suppress Sidekiq logs during performance testing
-    if defined?(Sidekiq)
-      Sidekiq.logger.level = Logger::ERROR
-    end
-
-    # Ensure Redis is available
-    unless $redis
-      puts "❌ Redis not available - performance tests require Redis"
+  def verify_solid_stack
+    service = Performance::BaseService.new
+    unless service.test_solid_stack
+      puts "❌ Solid Stack is not ready - prepare queue/cache databases before running performance tests"
       exit(1)
     end
 
-  rescue => e
-    puts "📡 Redis error: #{e.message}"
+    puts "🎯 Solid Stack ready for performance testing"
+  rescue StandardError => e
+    puts "📡 Solid Stack error: #{e.message}"
     exit(1)
   end
 
-  # Clear any accumulated fake jobs after performance testing
-  def cleanup_sidekiq_jobs
-    if defined?(Sidekiq::Testing) && Sidekiq::Testing.fake?
-      Sidekiq::Worker.clear_all
-      puts "🧹 Cleared #{Sidekiq::Worker.jobs.size} accumulated test jobs"
-    end
+  # Clear any accumulated jobs after performance testing.
+  def cleanup_solid_queue_jobs
+    count = defined?(SolidQueue::Job) ? SolidQueue::Job.count : 0
+    SolidQueue::Job.delete_all if defined?(SolidQueue::Job)
+    puts "🧹 Cleared #{count} Solid Queue jobs"
+  rescue StandardError => e
+    puts "⚠️  Could not clear Solid Queue jobs: #{e.message}"
   end
 end
 
@@ -117,7 +99,7 @@ task :perform, %i[users messages] => 'performance_check:sequential'
 #
 # == CLEANUP ==
 # rake performance_check:cleanup_test_users   # Remove all test users
-# rake performance_check:clear_jobs           # Clear all Sidekiq jobs and queues
+# rake performance_check:clear_jobs           # Clear all Solid Queue jobs
 #
 # 💡 TIP: Always run setup_users first before running performance tests
 # 🚀 All tests now measure PURE messaging performance (no user creation overhead)

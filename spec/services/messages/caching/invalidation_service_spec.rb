@@ -37,10 +37,10 @@ RSpec.describe Messages::Caching::InvalidationService, type: :service do
       end
     end
 
-    context 'when Redis connection fails' do
+    context 'when cache invalidation fails' do
       before do
         allow(Caching::ConversationCacheService).to receive(:invalidate_user_conversations)
-          .and_raise(Redis::CannotConnectError, 'Redis connection failed')
+          .and_raise(StandardError, 'cache unavailable')
         allow(Rails.logger).to receive(:error)
       end
 

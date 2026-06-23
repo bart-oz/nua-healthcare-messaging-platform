@@ -23,15 +23,7 @@ Rails.application.configure do
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
-    config.cache_store = :redis_cache_store, {
-      url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0'),
-      expires_in: 1.hour,
-      reconnect_attempts: 3,
-      error_handler: -> (method:, returning:, exception:) do
-        Rails.logger.error "Redis cache error: #{exception.message}"
-        returning
-      end
-    }
+    config.cache_store = :solid_cache_store
     config.public_file_server.headers = {
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
@@ -82,8 +74,9 @@ Rails.application.configure do
   config.assets.compile = true
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_adapter = :solid_queue
   config.active_job.queue_name_prefix = "nua_messaging_development"
+  config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true

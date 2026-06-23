@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Concurrent performance check for Redis + Sidekiq + Database
+# Concurrent performance check for Solid Stack + Database
 # Only tests pure messaging performance with existing users
 class Performance::ConcurrentExecutionService < Performance::BaseService
   # Main method - always uses pure messaging (existing users only)
@@ -16,7 +16,7 @@ class Performance::ConcurrentExecutionService < Performance::BaseService
     puts "=" * 60
 
     # Setup: Ensure we have enough existing users (outside of timing)
-    redis_works = test_redis
+    solid_stack_works = test_solid_stack
     existing_users = get_existing_users(users_count, "PerfTest")
 
     if existing_users.size < users_count
@@ -47,14 +47,14 @@ class Performance::ConcurrentExecutionService < Performance::BaseService
     cleanup_messages_only(existing_users)
 
     # Show results
-    show_results(users_count, messages_count, redis_works, results, total_time, memory_used, cpu_used)
+    show_results(users_count, messages_count, solid_stack_works, results, total_time, memory_used, cpu_used)
 
     # Return results hash
     {
       users: users_count,
       messages_per_user: messages_count,
       time_seconds: total_time.round(2),
-      redis_working: redis_works,
+      solid_stack_working: solid_stack_works,
       messages_sent: results[:sent],
       messages_failed: results[:failed],
       pure_messaging_rate: results[:rate],
@@ -104,12 +104,12 @@ class Performance::ConcurrentExecutionService < Performance::BaseService
     { sent: sent, failed: failed, rate: rate.round(1) }
   end
 
-  def show_results(users, messages_per_user, redis_works, results, total_time, memory_used = 0, cpu_used = 0)
+  def show_results(users, messages_per_user, solid_stack_works, results, total_time, memory_used = 0, cpu_used = 0)
     expected = users * messages_per_user
     puts ""
     puts "=" * 60
     puts "📊 CONCURRENT MESSAGING RESULTS"
-    puts "⏱️  #{total_time.round(2)}s  |  🔧 Redis/Sidekiq: #{redis_works ? '✅' : '❌'}  |  📨 #{results[:sent]}/#{expected}"
+    puts "⏱️  #{total_time.round(2)}s  |  🔧 Solid Stack: #{solid_stack_works ? '✅' : '❌'}  |  📨 #{results[:sent]}/#{expected}"
     puts ""
     puts "⚡ #{results[:rate]} messages/sec (pure concurrent messaging performance)"
     puts "📅 ~#{format_capacity(results[:rate])} messages/day capacity"

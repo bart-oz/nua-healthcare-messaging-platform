@@ -36,6 +36,5 @@ Capybara::Screenshot.prune_strategy = :keep_last_run
 Capybara::Screenshot.append_timestamp = true
 Capybara::Screenshot.capybara_tmp_path = Rails.root.join('tmp/capybara')
 
-# Configure Sidekiq for inline processing during Cucumber tests
-require 'sidekiq/testing'
-Sidekiq::Testing.inline!
+# Run Active Job work inline during Cucumber flows.
+ActiveJob::Base.queue_adapter = :inline

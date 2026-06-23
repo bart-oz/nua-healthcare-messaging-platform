@@ -29,7 +29,7 @@ class Prescription < ApplicationRecord
     ready? && pdf_url.present?
   end
 
-  # Check if prescription can be retried (manual retry after Sidekiq auto-retries failed)
+  # Check if prescription can be retried after Active Job retries failed.
   def retryable?
     payment_rejected? && payment&.failed?
   end

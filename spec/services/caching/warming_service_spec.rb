@@ -7,6 +7,7 @@ RSpec.describe Caching::WarmingService do
   let(:other_user) { create(:user) }
 
   before do
+    Message.delete_all
     @original_cache_store = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
   end
@@ -110,8 +111,8 @@ RSpec.describe Caching::WarmingService do
       expect(described_class.send(:cache_available?)).to be true
     end
 
-    it 'returns false when Redis connection fails' do
-      allow(Rails.cache).to receive(:respond_to?).and_raise(Redis::CannotConnectError)
+    it 'returns false when cache access fails' do
+      allow(Rails.cache).to receive(:respond_to?).and_raise(StandardError, 'cache unavailable')
       expect(described_class.send(:cache_available?)).to be false
     end
   end

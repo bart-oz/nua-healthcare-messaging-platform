@@ -76,6 +76,6 @@ class MessagesController < ApplicationController
   end
 
   def request_message_params
-    params.require(:message).permit(:body, :routing_type, :parent_message_id, :status)
+    params.expect(message: %i[body routing_type parent_message_id status])
   end
 end

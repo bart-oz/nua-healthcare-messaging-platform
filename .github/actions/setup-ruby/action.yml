@@ -5,7 +5,7 @@ inputs:
   ruby-version:
     description: 'Ruby version to use'
     required: false
-    default: '3.2.4'
+    default: '4.0.3'
   setup-database:
     description: 'Whether to setup database (create and load schema)'
     required: false
@@ -27,7 +27,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        bundle lock --add-platform x86_64-linux
+        bundle lock --add-platform x86_64-linux-gnu
         bundle install
 
     - name: Setup database
@@ -39,9 +39,7 @@ runs:
         DB_HOST: 127.0.0.1
         DB_PORT: 5432
       run: |
-        bundle exec rails db:create
-        bundle exec rails db:schema:load
-        bundle exec rails db:seed
+        bundle exec rails db:prepare
 
     - name: Create storage directories
       if: inputs.create-storage-dirs == 'true'

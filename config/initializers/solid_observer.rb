@@ -1,0 +1,68 @@
+# frozen_string_literal: true
+
+# SolidObserver Configuration
+# See https://github.com/bart-oz/solid_observer for more details
+
+SolidObserver.configure do |config|
+  # UI Settings
+  # Enable the web UI for viewing events and metrics
+  # Recommended: false in production, true in development/staging
+  config.ui_enabled = !Rails.env.production?
+
+  # Production dashboard exposure is the host app's responsibility. If you mount
+  # the dashboard in production, wrap the mount in your existing admin auth
+  # constraint, for example in config/routes.rb:
+  #
+  #   authenticate :user, ->(user) { user.admin? } do
+  #     mount SolidObserver::Engine, at: "/solid_observer"
+  #   end
+  #
+  # Built-in HTTP Basic Auth is enabled only when BOTH credentials are present.
+  # Setting only one credential disables Basic Auth and logs a boot warning.
+  # config.ui_username = "admin"
+  # config.ui_password = "secret"
+
+  # Base controller used only to detect API-only rendering compatibility
+  # config.ui_base_controller = "ApplicationController"
+
+  # === Queue Observability (v0.1.0) ===
+  config.observe_queue = true
+
+  # === Cache Observability (v0.4.0) ===
+  # Enable SolidCache event capture and operational clear/prune controls
+  config.observe_cache = true
+  config.cache_sampling_rate = 0.1  # Sample 10% of cache operations
+
+  # === Cable Observability (Coming in v0.5.0+) ===
+  # Cable observability is optional and requires SolidCable in the host app.
+  # No SolidCable setup is performed by SolidObserver.
+  config.observe_cable = true
+
+  # Data Retention
+  config.event_retention = 30.days    # How long to keep event records
+  config.metrics_retention = 90.days  # How long to keep aggregated metrics
+
+  # Database Limits (prevent unlimited growth)
+  config.max_db_size = 1.gigabyte
+  config.warning_threshold = 0.8  # Warn when DB reaches 80% of max_db_size
+
+  # Performance Settings
+  config.buffer_size = 1000        # Events to buffer before flushing
+  config.flush_interval = 10.seconds
+
+  # Sampling (reduce overhead in high-traffic apps)
+  config.sampling_rate = 1.0  # 1.0 = 100% (capture all events)
+
+  # Correlation ID (for distributed tracing)
+  # Integrate with your APM tool (Datadog, Sentry, OpenTelemetry, etc.)
+  # config.correlation_id_generator = -> {
+  #   # Example for Datadog APM
+  #   Datadog::Tracing.active_trace&.id
+  #
+  #   # Example for Sentry
+  #   Sentry.get_current_scope&.transaction&.trace_id
+  #
+  #   # Example for OpenTelemetry
+  #   OpenTelemetry::Trace.current_span&.context&.trace_id
+  # }
+end

@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-# NOTE: Do not set Sidekiq warning env flags here; keep spec helper clean
+# NOTE: Keep framework-specific warning env flags out of spec helper.
 
-# Load SimpleCov for test coverage reporting
-require 'simplecov'
+if ENV['COVERAGE'] == 'true'
+  require 'simplecov'
 
-if ENV['COVERAGE']
   SimpleCov.start 'rails' do
     # Exclude performance monitoring and tooling from coverage requirements
     add_filter 'app/services/performance_check_service.rb'

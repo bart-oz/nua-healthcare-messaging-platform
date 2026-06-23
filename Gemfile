@@ -2,41 +2,43 @@
 
 source 'https://rubygems.org'
 
-ruby '3.2.4'
+ruby '4.0.3'
 
 gem 'active_model_serializers', '~> 0.10'
 gem 'bcrypt', '~> 3.1'
 gem 'bootsnap', '~> 1.18', require: false
 gem 'bootstrap', '~> 5.3', git: 'https://github.com/twbs/bootstrap-rubygem.git', branch: 'main'
 gem 'dartsass-rails', '~> 0.5'
-gem 'importmap-rails', '~> 1.0'
+gem 'importmap-rails', '~> 2.2'
 gem 'jbuilder', '~> 2.11'
 gem 'jquery-rails', '~> 4.6'
 gem 'jwt', '~> 2.7'
 gem 'kamal', '~> 2.0'
 gem 'pagy', '~> 9.0'
-gem 'pg', '~> 1.5'
-gem 'propshaft', '~> 0.7'
+gem 'pg', '~> 1.6'
+gem 'propshaft', '~> 1.3'
 gem 'puma', '~> 6.4'
 gem 'rack-cors', '~> 2.0'
-gem 'rails', '~> 7.2'
-gem 'redis', '~> 5.0'
-gem 'redis-rails', '~> 5.0'
-gem 'rswag-api', '~> 2.12'
-gem 'rswag-specs', '~> 2.12'
-gem 'rswag-ui', '~> 2.12'
-gem 'sidekiq', '~> 7.2'
+gem 'rails', '8.1.3'
+gem 'rswag-api', '~> 2.17'
+gem 'rswag-specs', '~> 2.17'
+gem 'rswag-ui', '~> 2.17'
+gem 'solid_cable'
+gem 'solid_cache'
+gem 'solid_observer', path: '../solid_observer'
+gem 'solid_queue'
+gem 'sqlite3', '~> 2.0'
 gem 'stimulus-rails', '~> 1.3'
-gem 'turbo-rails', '~> 1.5'
+gem 'turbo-rails', '~> 2.0'
 
 group :development, :test do
   gem 'capybara', '~> 3.40'
   gem 'capybara-screenshot', '~> 1.0'
-  gem 'cucumber-rails', '~> 2.6', require: false
+  gem 'cucumber-rails', '~> 4.0', require: false
   gem 'database_cleaner-active_record', '~> 2.1'
   gem 'factory_bot_rails', '~> 6.4'
   gem 'faker', '~> 3.2'
-  gem 'rspec-rails', '~> 6.1'
+  gem 'rspec-rails', '~> 8.0'
   gem 'selenium-webdriver', '~> 4.18'
   gem 'shoulda-matchers', '~> 6.1'
   gem 'simplecov', '~> 0.22', require: false
@@ -46,20 +48,18 @@ group :development do
   gem 'better_errors', '~> 2.10'
   gem 'dockerfile-rails', '>= 1.7'
   gem 'foreman', '~> 0.87'
-  gem 'pry-byebug', '~> 3.10'
-  gem 'web-console', '~> 4.2'
+  gem 'pry-byebug', '~> 3.10', require: false
+  gem 'web-console', '~> 4.3'
 end
 
 group :test do
-  gem 'rspec-sidekiq', '~> 3.1'
   gem 'timecop', '~> 0.9'
 end
 
 group :tools do
-  gem 'annotate', '~> 3.2'
   gem 'brakeman', '~> 6.1', require: false
   gem 'bullet', '~> 7.1'
-  gem 'bundler-audit', '~> 0.9', require: false
+  gem 'bundler-audit', require: false
   gem 'i18n-tasks', '~> 1.0'
   gem 'letter_opener', '~> 1.8'
   gem 'rack-mini-profiler', '~> 3.1'

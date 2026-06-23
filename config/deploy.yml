@@ -18,12 +18,7 @@ servers:
   job:
     hosts:
       - 64.226.107.174
-    cmd: bundle exec sidekiq -c 5 -q nua_messaging_production_high_priority -q nua_messaging_production_default -q nua_messaging_production_low_priority -q nua_messaging_production_mailers -q high_priority -q default -q low_priority -q mailers
-    env:
-      clear:
-        SIDEKIQ_CONCURRENCY: 5
-        SIDEKIQ_TIMEOUT: 25
-        SIDEKIQ_RETRY: 3
+    cmd: bin/jobs
 
 # SSH configuration
 ssh:
@@ -57,8 +52,6 @@ env:
     - KAMAL_REGISTRY_PASSWORD
     - RAILS_MASTER_KEY
     - POSTGRES_PASSWORD
-    - REDIS_URL
-    - DATABASE_URL
 
 # Use accessory services (secrets come from .env).
 accessories:
@@ -73,12 +66,6 @@ accessories:
         - POSTGRES_PASSWORD
     directories:
       - data:/var/lib/postgresql/data
-  redis:
-    image: redis:7.0
-    port: 6379
-    host: 64.226.107.174
-    directories:
-      - data:/data
 
 # Proxy configuration with SSL enabled
 proxy:

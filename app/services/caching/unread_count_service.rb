@@ -8,7 +8,7 @@ module Caching
     CACHE_TTL = 10.minutes # Increased TTL to reduce cache misses
     CACHE_KEY_PREFIX = 'inbox_unread_count'
 
-    # Connection pool for Redis to prevent connection overwhelming
+    # Connection pool settings retained for cache health monitoring.
     CONNECTION_POOL_SIZE = 5
     CONNECTION_POOL_TIMEOUT = 5
 
@@ -28,7 +28,7 @@ module Caching
         end
 
         cached_count
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback to database if cache is unavailable
         fetch_unread_count_from_db(inbox)
       end
@@ -39,7 +39,7 @@ module Caching
 
         cache_key = cache_key_for(inbox)
         Rails.cache.write(cache_key, count, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - do nothing, let database handle it
         nil
       end
@@ -54,7 +54,7 @@ module Caching
 
         Rails.cache.write(cache_key, new_count, expires_in: CACHE_TTL)
         new_count
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - just return the incremented database count
         fetch_unread_count_from_db(inbox) + 1
       end
@@ -69,7 +69,7 @@ module Caching
 
         Rails.cache.write(cache_key, new_count, expires_in: CACHE_TTL)
         new_count
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - just return the decremented database count
         [fetch_unread_count_from_db(inbox) - 1, 0].max
       end
@@ -80,7 +80,7 @@ module Caching
 
         cache_key = cache_key_for(inbox)
         Rails.cache.write(cache_key, 0, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - do nothing, let database handle it
         nil
       end
@@ -91,7 +91,7 @@ module Caching
 
         cache_key = cache_key_for(inbox)
         Rails.cache.delete(cache_key)
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - do nothing
         nil
       end
@@ -103,7 +103,7 @@ module Caching
         actual_count = fetch_unread_count_from_db(inbox)
         set_unread_count(inbox, actual_count)
         actual_count
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         # Fallback - just return the database count
         fetch_unread_count_from_db(inbox)
       end
@@ -158,7 +158,7 @@ module Caching
       def cache_available?
         cache_store = Rails.cache
         cache_store.respond_to?(:read) && cache_store.respond_to?(:write)
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         false
       end
     end

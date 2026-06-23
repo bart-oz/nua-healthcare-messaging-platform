@@ -6,6 +6,13 @@ ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
+
+css_build = Rails.root.join('app/assets/builds/application.css')
+unless css_build.exist?
+  require 'dartsass/runner'
+  system(*Dartsass::Runner.dartsass_compile_command, out: File::NULL, err: File::NULL, exception: true)
+end
+
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -66,7 +73,7 @@ RSpec.configure do |config|
   # Include FactoryBot methods
   config.include FactoryBot::Syntax::Methods
 
-  # NOTE: No Sidekiq env flags here; control warnings via initializer
+  # NOTE: Keep framework-specific warning env flags out of Rails helper.
   # Clear user caches between tests to prevent test isolation issues
   config.before(:each) do
     # Clear user caching in RoutingService to prevent test interference

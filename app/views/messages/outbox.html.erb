@@ -38,8 +38,6 @@
   </div>
 </div>
 
-
-
 <!-- Turbo Stream targets for real-time updates -->
 <%= turbo_stream_from "messages" %>
 <%= turbo_stream_from "user_#{current_user.id}_outbox" %>

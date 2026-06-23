@@ -27,8 +27,8 @@ RSpec.describe Caching::MessageListCacheService do
       expect(result.first).to include(:id, :body, :sender, :recipient) if result.any?
     end
 
-    it 'handles Redis connection errors gracefully' do
-      allow(Rails.cache).to receive(:fetch).and_raise(Redis::CannotConnectError)
+    it 'handles cache errors gracefully' do
+      allow(Rails.cache).to receive(:fetch).and_raise(StandardError, 'cache unavailable')
 
       result = described_class.get_message_list('test-conversation')
 

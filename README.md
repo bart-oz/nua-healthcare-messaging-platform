@@ -31,9 +31,9 @@
 - **📊 Performance Monitoring**: 5.4M+ messages/day capacity with comprehensive metrics
 
 ### **Technology Stack**
-- **Backend**: Ruby on Rails 7.2.2, PostgreSQL, Redis
+- **Backend**: Ruby on Rails 8.1.3, PostgreSQL, Solid Queue/Cache/Cable
 - **Frontend**: Turbo Streams, Stimulus, Bootstrap 5
-- **Jobs**: Sidekiq with auto-retry configuration
+- **Jobs**: Solid Queue with Active Job retry configuration
 - **Testing**: RSpec (90.76% coverage), Cucumber E2E
 - **Quality**: Reek, RuboCop, Brakeman, SimpleCov
 
@@ -77,7 +77,7 @@
 | Send hardcoded message to admin | ✅ **COMPLETED** | Automated admin notification |
 | Payment provider integration | ✅ **COMPLETED** | `PaymentProviderFactory.provider.debit()` |
 | Create Payment record | ✅ **COMPLETED** | Full payment lifecycle |
-| Handle flaky provider (50% failure rate) | ✅ **COMPLETED** | Sidekiq auto-retry (3 attempts) |
+| Handle flaky provider (50% failure rate) | ✅ **COMPLETED** | Active Job auto-retry via Solid Queue (3 attempts) |
 | Graceful degradation on failure | ✅ **COMPLETED** | Manual retry + error handling |
 
 **🧪 Tests**: Payment API calls, failure scenarios, graceful degradation
@@ -110,7 +110,7 @@ graph TD
     D[🩺 Doctor] --> B
 
     B --> E[💾 PostgreSQL]
-    B --> F[📡 Redis/Sidekiq]
+    B --> F[📡 Solid Queue/Cache/Cable]
     B --> G[💳 Payment Provider]
 
     B --> H[📱 Real-time UI]
@@ -168,7 +168,7 @@ flowchart TD
 | **Composite Indexes** | Fast message queries | `(user_id, created_at, status)` |
 | **Pagination** | Handle large datasets | Pagy gem (10 items/page) |
 | **Query Optimization** | Reduce N+1 queries | Eager loading + includes |
-| **Background Processing** | Non-blocking operations | Sidekiq job queues |
+| **Background Processing** | Non-blocking operations | Solid Queue job queues |
 
 ## ⚡ Performance Metrics
 
@@ -212,7 +212,7 @@ bundle install
 rails db:create db:migrate db:seed
 
 # 2. Start Services
-foreman start  # Starts Rails + Sidekiq + Redis
+foreman start  # Starts Rails + Solid Queue worker
 
 # 3. Access Application
 open http://localhost:3000

@@ -16,8 +16,8 @@ module Caching
         Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
           fetch_message_list_from_db(conversation_id, limit, offset)
         end
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error in message list: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error in message list: #{e.message}"
         fetch_message_list_from_db(conversation_id, limit, offset)
       end
 
@@ -25,8 +25,8 @@ module Caching
       def cache_message_list(conversation_id, messages, limit: 10, offset: 0)
         cache_key = "#{CACHE_KEY_PREFIX}:thread:#{conversation_id}:#{limit}:#{offset}"
         Rails.cache.write(cache_key, messages, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error caching message list: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error caching message list: #{e.message}"
         false
       end
 
@@ -38,8 +38,8 @@ module Caching
         Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
           fetch_conversation_thread_from_db(inbox_id, outbox_id, limit)
         end
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error in conversation thread: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error in conversation thread: #{e.message}"
         fetch_conversation_thread_from_db(inbox_id, outbox_id, limit)
       end
 
@@ -48,8 +48,8 @@ module Caching
         conversation_id = conversation_identifier(inbox_id, outbox_id)
         cache_key = "#{CACHE_KEY_PREFIX}:conversation:#{conversation_id}:#{limit}"
         Rails.cache.write(cache_key, messages, expires_in: CACHE_TTL)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error caching conversation thread: #{e.message}"
+      rescue StandardError => e
+        Rails.logger.error "Cache error caching conversation thread: #{e.message}"
         false
       end
 
@@ -57,19 +57,18 @@ module Caching
       def invalidate_conversation_cache(inbox_id, outbox_id)
         conversation_id = conversation_identifier(inbox_id, outbox_id)
         pattern = "#{CACHE_KEY_PREFIX}:*:#{conversation_id}:*"
-        Rails.cache.delete_matched(pattern)
-        true
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error invalidating conversation: #{e.message}"
+        delete_matched(pattern)
+      rescue StandardError => e
+        Rails.logger.error "Cache error invalidating conversation: #{e.message}"
         false
       end
 
       # Invalidate all message list caches
       def invalidate_all_message_lists
         pattern = "#{CACHE_KEY_PREFIX}:*"
-        Rails.cache.delete_matched(pattern)
-      rescue Redis::CannotConnectError, Redis::ConnectionError => e
-        Rails.logger.error "Redis cache error invalidating all message lists: #{e.message}"
+        delete_matched(pattern)
+      rescue StandardError => e
+        Rails.logger.error "Cache error invalidating all message lists: #{e.message}"
         false
       end
 
@@ -99,6 +98,14 @@ module Caching
                           .map { |msg| message_data(msg) }
 
         messages.reverse # Return in chronological order
+      end
+
+      def delete_matched(pattern)
+        Rails.cache.delete_matched(pattern)
+        true
+      rescue NoMethodError, NotImplementedError => e
+        Rails.logger.warn "Cache store does not support delete_matched: #{e.message}"
+        false
       end
 
       def fetch_conversation_thread_from_db(inbox_id, outbox_id, limit)

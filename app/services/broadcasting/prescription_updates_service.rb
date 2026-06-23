@@ -31,6 +31,7 @@ module Broadcasting
 
         broadcast_prescription_item_update(prescription)
         broadcast_prescription_action_button_update(prescription)
+        broadcast_inbox_list_item_update(prescription)
         broadcast_notification(prescription.user, notification_message) if notification_message
         broadcast_prescription_count_update(prescription.user)
       end
@@ -91,6 +92,24 @@ module Broadcasting
             locals: { prescription: prescription }
           )
         end
+      end
+
+      # Broadcast inbox list item update so admins see prescription status changes
+      # in real time without refreshing the page.
+      def broadcast_inbox_list_item_update(prescription)
+        request_message = prescription.messages.includes(:inbox, :outbox, :prescription,
+                                                         outbox: :user, prescription: :payment).first
+        return unless request_message
+
+        inbox = request_message.inbox
+        return unless inbox
+
+        Broadcasting::TurboStreamsService.broadcast_replace_to(
+          Broadcasting::TurboStreamsService.inbox_stream(inbox),
+          target: ActionView::RecordIdentifier.dom_id(request_message),
+          partial: 'messages/partials/list/received_message_item',
+          locals: { message: request_message }
+        )
       end
 
       # Broadcast notification to user

@@ -26,7 +26,7 @@ class Payment < ApplicationRecord
     update!(status: :completed)
   end
 
-  # Mark payment as failed (Sidekiq handles retries automatically)
+  # Mark payment as failed after Active Job retries are exhausted.
   def mark_failed!(error_message = nil)
     update!(
       status: :failed,

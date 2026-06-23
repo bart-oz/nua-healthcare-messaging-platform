@@ -145,7 +145,7 @@ module Caching
       def cache_available?
         cache_store = Rails.cache
         cache_store.respond_to?(:read) && cache_store.respond_to?(:write)
-      rescue Redis::CannotConnectError, Redis::ConnectionError
+      rescue StandardError
         false
       end
     end

@@ -2,14 +2,14 @@
 
 # Base service for performance testing with shared functionality
 class Performance::BaseService
-  def test_redis
-    return false unless $redis
+  def test_solid_stack
+    test_key = "performance_check:solid_stack"
 
-    $redis.set("test", "ok", ex: 10)
-    result = $redis.get("test") == "ok"
-    $redis.del("test")
-    result
-  rescue
+    Rails.cache.write(test_key, "ok", expires_in: 10.seconds)
+    result = Rails.cache.read(test_key) == "ok"
+    Rails.cache.delete(test_key)
+    result && ActiveJob::Base.queue_adapter.is_a?(ActiveJob::QueueAdapters::SolidQueueAdapter)
+  rescue StandardError
     false
   end
 
@@ -115,7 +115,7 @@ class Performance::BaseService
     raise NotImplementedError, "#{self.class} must implement send_messages"
   end
 
-  def show_results(users, messages_per_user, redis_works, results, total_time, memory_used, cpu_used)
+  def show_results(users, messages_per_user, solid_stack_works, results, total_time, memory_used, cpu_used)
     raise NotImplementedError, "#{self.class} must implement show_results"
   end
 end

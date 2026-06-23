@@ -67,8 +67,8 @@ RSpec.describe Caching::UnreadCountService do
 
     context 'when cache is not available' do
       before do
-        allow(Rails.cache).to receive(:read).and_raise(Redis::CannotConnectError)
-        allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError)
+        allow(Rails.cache).to receive(:read).and_raise(StandardError, 'cache unavailable')
+        allow(Rails.cache).to receive(:write).and_raise(StandardError, 'cache unavailable')
       end
 
       it 'falls back to database count' do

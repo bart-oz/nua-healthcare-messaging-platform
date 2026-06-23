@@ -24,25 +24,6 @@ module NuaMessaging
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Redis cache store configuration for high-performance caching
-    redis_url = case Rails.env
-                when 'test'
-                  ENV.fetch('REDIS_URL', 'redis://localhost:6379/2')
-                when 'development'
-                  ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
-                else
-                  ENV.fetch('REDIS_URL', 'redis://nua-healthcare-app-redis:6379/0')
-                end
-
-    config.cache_store = :redis_cache_store, {
-      url: redis_url,
-      expires_in: 1.hour,
-      reconnect_attempts: 3,
-      error_handler: -> (method:, returning:, exception:) do
-        Rails.logger.error "Redis cache error: #{exception.message}"
-        # Return nil/false for cache misses to continue operation
-        returning
-      end
-    }
+    config.cache_store = :solid_cache_store
   end
 end
