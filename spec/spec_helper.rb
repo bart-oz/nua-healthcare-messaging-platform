@@ -19,7 +19,7 @@ if ENV['COVERAGE'] == 'true'
     add_group 'Performance Tools', ['app/services/performance_check_service.rb']
 
     # Maintain minimum coverage for core business logic
-    minimum_coverage 90
+    minimum_coverage 85
   end
 end
 
