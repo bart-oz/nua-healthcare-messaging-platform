@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
-  mount SolidObserver::Engine, at: "/solid_observer"
+  mount SolidObserver::Engine, at: '/solid_observer'
   # API Documentation with RSwag
   mount Rswag::Ui::Engine => '/api-docs'
   mount Rswag::Api::Engine => '/api-docs'
 
-    # API Routes - Streamlined Design (80/20 Rule)
+  # API Routes - Streamlined Design (80/20 Rule)
   namespace :api do
     namespace :v1 do
       # Inbox endpoints - Core messaging functionality
@@ -12,19 +14,19 @@ Rails.application.routes.draw do
         collection do
           get :messages        # GET /api/v1/inbox/messages - All received messages
           get :conversations   # GET /api/v1/inbox/conversations - Conversation threads
-          get :unread         # GET /api/v1/inbox/unread - Unread messages for notifications
+          get :unread          # GET /api/v1/inbox/unread - Unread messages for notifications
         end
       end
 
       # Outbox endpoints - Essential send functionality only
       resource :outbox, only: [] do
         collection do
-          post :send_message, path: 'messages'  # POST /api/v1/outbox/messages - Send new message
+          post :send_message, path: 'messages' # POST /api/v1/outbox/messages - Send new message
         end
       end
 
       # Message management endpoints
-      resources :messages, only: [:update]  # PATCH /api/v1/messages/:id - Update message status
+      resources :messages, only: [:update] # PATCH /api/v1/messages/:id - Update message status
 
       # Health check endpoint
       get :health, to: 'health#show'
@@ -32,7 +34,7 @@ Rails.application.routes.draw do
   end
 
   # Health check endpoint for deployment monitoring (Kamal)
-  get "up" => "rails/health#show", as: :rails_health_check
+  get 'up' => 'rails/health#show', as: :rails_health_check
 
   # Web Routes
   root to: 'messages#index'
@@ -48,7 +50,7 @@ Rails.application.routes.draw do
   end
 
   # Prescription management routes
-  resources :prescriptions, only: [:index, :create] do
+  resources :prescriptions, only: %i[index create] do
     member do
       post :retry_payment
       post :generate

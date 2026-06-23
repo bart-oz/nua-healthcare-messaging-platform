@@ -3,6 +3,10 @@
 exclude_paths:
   - vendor
   - db/migrate
+  - db/solid_observer_migrate
+  - db/queue_migrate
+  - db/cache_migrate
+  - db/cable_migrate
   - app/channels/application_cable
   - spec/
   - features/

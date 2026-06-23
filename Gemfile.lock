@@ -1,17 +1,18 @@
 GIT
+  remote: https://github.com/bart-oz/solid_observer.git
+  revision: e4be8d23b42e13d2588afdc5502fc365fec13a83
+  specs:
+    solid_observer (0.4.0)
+      concurrent-ruby (>= 1.3.1)
+      rails (>= 8.0)
+
+GIT
   remote: https://github.com/twbs/bootstrap-rubygem.git
   revision: decb9616d0cfb553c2b4bff37a929aa0f69011ec
   branch: main
   specs:
     bootstrap (5.3.5)
       popper_js (>= 2.11.8, < 3)
-
-PATH
-  remote: ../solid_observer
-  specs:
-    solid_observer (0.4.0)
-      concurrent-ruby (>= 1.3.1)
-      rails (>= 8.0)
 
 GEM
   remote: https://rubygems.org/

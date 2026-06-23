@@ -31,7 +31,7 @@ SolidObserver.configure do |config|
   # === Cache Observability (v0.4.0) ===
   # Enable SolidCache event capture and operational clear/prune controls
   config.observe_cache = true
-  config.cache_sampling_rate = 0.1  # Sample 10% of cache operations
+  config.cache_sampling_rate = 0.1 # Sample 10% of cache operations
 
   # === Cable Observability (Coming in v0.5.0+) ===
   # Cable observability is optional and requires SolidCable in the host app.
@@ -44,14 +44,14 @@ SolidObserver.configure do |config|
 
   # Database Limits (prevent unlimited growth)
   config.max_db_size = 1.gigabyte
-  config.warning_threshold = 0.8  # Warn when DB reaches 80% of max_db_size
+  config.warning_threshold = 0.8 # Warn when DB reaches 80% of max_db_size
 
   # Performance Settings
-  config.buffer_size = 1000        # Events to buffer before flushing
+  config.buffer_size = 1000 # Events to buffer before flushing
   config.flush_interval = 10.seconds
 
   # Sampling (reduce overhead in high-traffic apps)
-  config.sampling_rate = 1.0  # 1.0 = 100% (capture all events)
+  config.sampling_rate = 1.0 # 1.0 = 100% (capture all events)
 
   # Correlation ID (for distributed tracing)
   # Integrate with your APM tool (Datadog, Sentry, OpenTelemetry, etc.)
