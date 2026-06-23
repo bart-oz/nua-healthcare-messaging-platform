@@ -40,12 +40,12 @@ namespace :quality_gate do
   desc 'Run test coverage'
   task test_coverage: :environment do
     puts '🧪 Running RSpec with coverage...'
-    exit_code = system('COVERAGE=true bundle exec rspec --format progress')
+    exit_code = system('CI=true COVERAGE=true bundle exec rspec --format progress')
     unless exit_code
-      puts '❌ Test coverage failed - either tests failed or coverage is below the required minimum (85.00%).'
+      puts '❌ Test coverage failed - either tests failed or coverage is below the required minimum (90.00%).'
       exit(1)
     end
-    puts '✅ Test coverage passed - all tests passed and coverage meets the minimum requirement (85.00%).'
+    puts '✅ Test coverage passed - all tests passed and coverage meets the minimum requirement (90.00%).'
   end
 
   desc 'Run E2E tests with Cucumber'

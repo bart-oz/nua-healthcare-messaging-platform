@@ -14,6 +14,7 @@ gem 'jbuilder', '~> 2.11'
 gem 'jquery-rails', '~> 4.6'
 gem 'jwt', '~> 2.7'
 gem 'kamal', '~> 2.0'
+gem 'net-imap', '~> 0.6.4', require: false
 gem 'pagy', '~> 9.0'
 gem 'pg', '~> 1.6'
 gem 'propshaft', '~> 1.3'

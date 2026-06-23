@@ -13,7 +13,7 @@ SimpleCov.start 'rails' do
   add_group 'Libraries', 'lib'
 
   # Set minimum coverage threshold
-  minimum_coverage 85
+  minimum_coverage 90
 
   # Exclude certain files from coverage
   add_filter '/bin/'
